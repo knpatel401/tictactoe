@@ -17,6 +17,5 @@ The code implements a tic-tac-toe playing bot that learns to play through:
 - Need to add exploration/random component to the MC method so that
   the bot explores the entire space in the self-learning case.
 - Need to add example functions to illustrate each method.
-- Add function to get moves from user so can play against the bot.
 - Add other methods (e.g., temporal difference)
 - Add hook for value function approximation

@@ -199,7 +199,21 @@ class ticTacToeBot(object):
                   self._boardValues[board] = newBoardValue
                   
         return anyUpdate
-    
+
+def getMoveFromUser(board):
+    done = False
+    possible = possibleMoves(board)
+    while not done:
+      print("                 ")
+      printBoard(board)
+      print("Valid moves = " + str(possible))
+      move = int(raw_input("Please enter your move: "))
+      if move in possible:
+          done = True
+      else:
+          print("Invalid move")
+    return updateBoard(board,move), move
+      
 def valueIteration():
     '''Update the value function using value iteration until we converge to the optimal
        value function.  This is essentially using dynamic programming to find the optimal 
@@ -232,11 +246,33 @@ def runMCiterations(myBot, numIter):
         playGame(myBot)
         myBot.monteCarloUpdate()
         
-    
+# Simulation of playing against the bot after using value iteration to find optimal policy    
 myBot = ticTacToeBot()
 myBot.initValues()
-playGame(myBot)
-
 myBot = valueIteration()
-playGame(myBot)
 
+donePlaying = False
+while not donePlaying:
+
+    board = newGame
+    gameDone = False
+    while not gameDone:
+        board, move = getMoveFromUser(board)
+        if evalBoard(board) != 0 or len(possibleMoves(board))==0:
+            printBoard(board)
+            break
+        board, move = myBot.bestMove(board)
+        if evalBoard(board) != 0 or len(possibleMoves(board))==0:
+            break
+        
+    if evalBoard(board) == 0:
+        print("Tie game!")
+    if evalBoard(board) == 1:
+        print("X wins!")
+    if evalBoard(board) == -1:
+        print("O wins!")
+    
+    response = (raw_input("Play again? [n to stop] ")).lower()
+    if response[0] == "n":
+        break
+    
