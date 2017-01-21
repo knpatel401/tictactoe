@@ -36,6 +36,11 @@ def evalBoard(board):
     return result
 
 def printBoard(board):
+    '''
+      Print the tic-tac-toe board.  The input is 
+      assumed to be a tuple of length 9 with elements 
+      0, 1, or -1.
+    '''
     map = [' ','X','O']
 
     print('     ' + map[board[0]] + '|' + map[board[1]] + '|' + map[board[2]])
@@ -54,6 +59,11 @@ def updateBoard(board, move):
     return tuple(newBoard)
 
 def nextPlayer(board):
+    '''
+      Take the current board as input and return the player's whose turn is next.
+      This is done simply by checking the sum of the entries on the board.
+      The board is assumed to be a tuple of length 9.  The value returned is 1 or -1.  
+    '''
     currentStatus = sum(board)
     if currentStatus > 0:
         return -1
@@ -61,6 +71,9 @@ def nextPlayer(board):
         return 1
     
 def possibleMoves(board):
+    '''
+       Take board as input and return the indices of possible next moves.
+    '''
     if evalBoard(board) == 0:
         possible = [i for i,a in enumerate(board) if a==0]
     else:
@@ -69,6 +82,7 @@ def possibleMoves(board):
     
 def makeRandomMove(board):
     '''
+       Make a (valid) random move given the current board.
     '''
     possible = possibleMoves(board)
     move = random.choice(possible)
@@ -76,6 +90,7 @@ def makeRandomMove(board):
     
     return board, move
 
+# A quick global constant to indicate a clean board.
 newGame = (0,0,0,0,0,0,0,0,0)
 
 class ticTacToeBot(object):
@@ -89,10 +104,10 @@ class ticTacToeBot(object):
         self.discountRate = 1
         self.currentBoard = initBoard
 
-    def board2State(self,board):
-        return tuple(np.reshape(board,9).tolist()[0])
-
     def possibleMoves(self, board):
+        '''
+        Take board as input and return the indices of possible next moves.
+        '''
         if evalBoard(board) == 0:
             possible = [i for i,a in enumerate(board) if a==0]
         else:
@@ -100,6 +115,13 @@ class ticTacToeBot(object):
         return possible
 
     def bestMove(self, board):
+        '''
+        Given the current board, return the best move available based on the current value function.
+        Note: the "best" move is only necessarily the best move if the value function is correct.
+
+        Input is the board (as an 9-tuple)
+        Ouput is the updated board and the index of the move.
+        '''
         player = nextPlayer(board)
         possible = self.possibleMoves(board)
         bestMove = -1
@@ -111,16 +133,17 @@ class ticTacToeBot(object):
                 bestMove = move
         return updateBoard( board, bestMove), bestMove
                 
-        
-    def makeMove(self, board):
-        newBoard, move = self.bestMove(board)
-    
-        return newBoard,move
-
     def logBoard(self, board):
+        '''
+        Log the current board in the board history.  This is used for MC update 
+        of the value function.
+        '''
         self._boardHist.append(board)
 
     def monteCarloUpdate(self):
+        '''
+        This function does a Monte Carlo update on the game currently logged.
+        '''
         discountedReward = evalBoard(self._boardHist[-1])
         for board in reversed(self._boardHist[-1]):
             numStateVisits = self._stateVisitCount.get(board,0)
@@ -178,6 +201,9 @@ class ticTacToeBot(object):
         return anyUpdate
     
 def valueIteration():
+    '''Update the value function using value iteration until we converge to the optimal
+       value function.  This is essentially using dynamic programming to find the optimal 
+       value function.  The bot using this value function will play optimally.'''
     myBot = ticTacToeBot()
     myBot.initValues()
     update = True
@@ -187,16 +213,10 @@ def valueIteration():
     return myBot
         
 def playGame(myBot):
+    '''Have the bot (myBot) play a game against itself.'''
     board = newGame
     myBot.logBoard(board)
-    while len(possibleMoves(board)) > 0 and evalBoard(board)==0:
-        # temp
-        #printBoard(board)
-        #posMoves = possibleMoves(board)
-        #for move in posMoves:
-        #    print(move,myBot._boardValues[updateBoard(board,move)])
-
-        
+    while len(possibleMoves(board)) > 0 and evalBoard(board)==0:        
         newBoard, move = myBot.bestMove(board)
         board = newBoard
         myBot.logBoard(board)
@@ -205,6 +225,7 @@ def playGame(myBot):
     return evalBoard(board)
 
 def runMCiterations(myBot, numIter):
+    '''Run Monte Carlo updates of the value function for the specified number of iterations.'''
     myBot._stateVisitCount = {}
     myBot._boardHist = []
     for iter in range(numIter):
